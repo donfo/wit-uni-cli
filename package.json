@@ -2,9 +2,19 @@
   "name": "wit-uni-cli",
   "version": "1.0.0",
   "license": "MIT",
+  "keywords": [
+    "wit-uni"
+  ],
+  "homepage": "https://github.com/donfo/wit-uni-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donfo/wit-uni-cli.git"
+  },
+  "main": "index.js",
   "bin": {
     "wit-uni": "index.js"
   },
+  "author": "donfo <aspzjfa@foxmail.com>",
   "dependencies": {
     "dayjs": "^1.8.18",
     "node-watch": "^0.6.3",
