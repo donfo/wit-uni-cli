@@ -13,4 +13,8 @@ yarn global add wit-uni-cli
 $ wit-uni
 or
 $ wit-uni watch
+or
+$ wit-uni watch [模块名]
+or
+$ wit-uni watch [模块名] -j
 ```
