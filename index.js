@@ -22,17 +22,67 @@ const readFileJSON = (file) => {
   })
 }
 
+const isFileExisted = (file) => {
+  return new Promise(function(resolve, reject) {
+    fs.access(file, (err) => {
+      if (err) {
+        reject(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+}
+
 const handle = async (appsdir) => {
-  log(chalk.blue('处理中，请稍后...') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]`)
+  
+  log(chalk.blue('store处理中，请稍后...') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]`)
+  let storeDefault = await fs.readFileSync('./store/store.js', 'utf-8')
+  for (i = 0; i < appsdir.length; i++) {
+    try {
+      const isExisted = await isFileExisted(`${appsdir[i]}/store.js`)
+      if (isExisted) {
+        const store = await fs.readFileSync(`${appsdir[i]}/store.js`, 'utf-8')
+        // 处理state
+        const storeState = store.match(/state:(.|\n|\r)*getters:/gi)[0].replace(/,?(\s|\n|\r)*},(\s|\n|\r)*getters:/gi, '')
+        if (!/state:(.|\n|\r)*{$/gi.test(storeState)) {
+          storeDefault = storeDefault.replace(/state:(\s|\n|\r)*{{1}/gi, storeState + ',')
+        }
+        // 处理getters
+        const storeGetters = store.match(/getters:(.|\n|\r)*mutations:/gi)[0].replace(/,?(\s|\n|\r)*},(\s|\n|\r)*mutations:/gi, '')
+        if (!/getters:(.|\n|\r)*{$/gi.test(storeGetters)) {
+          storeDefault = storeDefault.replace(/getters:(\s|\n|\r)*{{1}/gi, storeGetters + ',')
+        }
+        // 处理mutations
+        const storeMutations = store.match(/mutations:(.|\n|\r)*actions:/gi)[0].replace(/,?(\s|\n|\r)*},(\s|\n|\r)*actions:/gi, '')
+        if (!/mutations:(.|\n|\r)*{$/gi.test(storeMutations)) {
+          storeDefault = storeDefault.replace(/mutations:(\s|\n|\r)*{{1}/gi, storeMutations + ',')
+        }
+        // 处理actions
+        const storeActions = store.match(/actions:(.|\n|\r)*}(\s|\n|\r)*$/gi)[0].replace(/(,?(\s|\n|\r)*}(\s|\n|\r)*){2}$/gi, '')
+        if (!/actions:(.|\n|\r)*{$/gi.test(storeActions)) {
+          storeDefault = storeDefault.replace(/actions:(\s|\n|\r)*{{1}/gi, storeActions + ',')
+        }
+      }
+    } catch (error) {}
+  }
+  log(storeDefault)
+  fs.writeFile('./store/index.js', storeDefault, (err) => {
+     if(err) throw err
+     log(chalk.green('store处理成功！') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]\n`)
+  })
+  
+  
+  log(chalk.blue('page处理中，请稍后...') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]`)
   const pagesDefault = await readFileJSON('./pages-default.json')
   for (i = 0; i < appsdir.length; i++) {
     const data = await readFileJSON(`${appsdir[i]}/pages.json`)
     pagesDefault.pages.push(...data.pages)
   }
-  console.log(pagesDefault)
+  log(pagesDefault)
   fs.writeFile('./pages.json', JSON.stringify(pagesDefault), (err) => {
      if(err) throw err
-     log(chalk.green('处理成功！') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]\n`)
+     log(chalk.green('page处理成功！') + `[${dayjs().format('YYYY-MM-DD hh:mm:ss')}]\n`)
   })
 }
 
@@ -64,7 +114,7 @@ if (argv.j) {
     }
   ]).then(answers => {
     init(answers.apps)
-    console.log(answers.apps)
+    log(answers.apps)
   })
 }
 
